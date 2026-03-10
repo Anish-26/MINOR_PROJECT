@@ -1,0 +1,109 @@
+Total code cells: 14
+
+============================================================
+CELL 0:
+============================================================
+import pandas as pd
+import folium as fl
+import json as js
+import geopandas as gp
+
+============================================================
+CELL 1:
+============================================================
+# Loading CSV
+df = pd.read_csv('../DATA/final_result.csv')
+
+============================================================
+CELL 2:
+============================================================
+# Loading GeoJSON
+df1 = gp.read_file("india.geojson")
+df1
+
+============================================================
+CELL 3:
+============================================================
+merged = df1.merge(df, left_on="st_nm", right_on="State/UT")
+merged
+
+============================================================
+CELL 4:
+============================================================
+#creating base map
+ind = fl.Map(location = [20.59, 78.96],zoom_start=4.9,)
+ind
+
+============================================================
+CELL 5:
+============================================================
+fl.Choropleth(
+    geo_data=merged,
+    data=merged,
+    columns=["st_nm", "Percentage with basic sanitation service"],
+    key_on="feature.properties.st_nm",
+    fill_color="YlGnBu",
+    fill_opacity=0.7,
+    line_opacity=0.3,
+    legend_name="Basic Sanitation (%)"
+).add_to(ind)
+ind
+
+============================================================
+CELL 6:
+============================================================
+fl.GeoJson(
+    merged,
+    tooltip=fl.GeoJsonTooltip(
+        fields=["st_nm", "Total Literacy", "Percentage with basic sanitation service"],
+        aliases=["State:", "Total Literacy (%):", "Basic Sanitation (%):"],
+        localize=True
+    )
+).add_to(ind)
+ind
+
+============================================================
+CELL 7:
+============================================================
+set(df["State/UT"]) - set(df1["st_nm"])
+
+============================================================
+CELL 8:
+============================================================
+df1[df1["st_nm"].str.contains("Jammu", case=False)]
+
+============================================================
+CELL 9:
+============================================================
+df["State/UT"] = df["State/UT"].replace({
+    "Jammu & Kashmir": "Jammu and Kashmir",
+    "Andaman & Nicobar Islands": "Andaman and Nicobar Islands",
+    "Dadra & Nagar Haveli and Daman & Diu": "Dadra and Nagar Haveli and Daman and Diu"
+})
+
+============================================================
+CELL 10:
+============================================================
+# Fix state name mismatches between CSV and GeoJSON
+rename_map = {
+    'Jammu & Kashmir':                           'Jammu and Kashmir',
+    'Andaman & Nicobar Islands':                  'Andaman and Nicobar Islands',
+    'Dadra & Nagar Haveli and Damaman and Diu':   'Dadra and Nagar Haveli and Daman and Diu',
+}
+df['State/UT'] = df['State/UT'].replace(rename_map)
+
+
+============================================================
+CELL 11:
+============================================================
+print(set(df["State/UT"]) - set(df1["st_nm"]))
+
+============================================================
+CELL 12:
+============================================================
+merged = df1.merge(df, left_on="st_nm", right_on="State/UT")
+
+============================================================
+CELL 13:
+============================================================
+ind
